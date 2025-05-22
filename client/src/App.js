@@ -1,22 +1,32 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Users from "./pages/Users";
-import Notification from "./pages/Notification";
-import Emergency from "./pages/Emergency";
-import CallHistory from "./pages/CallHistory";
+import { Routes, Route } from "react-router-dom";
+import User from "./features/user/UserList";
+import Notification from "./features/notification/NotificationList";
+import Emergency from "./features/emergency/EmergencyList";
+import CallHistory from "./features/history/CallHistoryList";
+import AdminDashboard from "./pages/AdminDashboard";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Unauthorized from "./pages/Unauthorized";
+import NotFound from "./pages/PageNotFound";
+import Setting from "./pages/Settings";
 import Layout from "./common/Layout";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route path="users" element={<Users />} />
-          <Route path="notification" element={<Notification />} />
-          <Route path="emergency" element={<Emergency />} />
-          <Route path="callHistory" element={<CallHistory />} />
-        </Route>
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route path="home" element={<Home />} />
+        <Route path="users" element={<User />} />
+        <Route path="notification" element={<Notification />} />
+        <Route path="emergency" element={<Emergency />} />
+        <Route path="callHistory" element={<CallHistory />} />
+        <Route path="AdminDashboard" element={<AdminDashboard />} />
+        <Route path="Login" element={<Login />} />
+        <Route path="NotFound" element={<NotFound />} />
+        <Route path="Setting" element={<Setting />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+      </Route>
+    </Routes>
   );
 }
 

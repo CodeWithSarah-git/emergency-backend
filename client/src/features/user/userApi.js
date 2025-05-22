@@ -1,40 +1,40 @@
-import { apiSlice } from '../../app/apiSlice';
+import { apiSlice } from '../../api/apiSlice';
 
 export const userApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    //קבלת כל המשתמשים
     getUsers: builder.query({
       query: () => 'Users',
-      providesTags: ['User']
+      providesTags: ['User'],
     }),
     getUserById: builder.query({
       query: (id) => `Users/${id}`,
-      providesTags: ['User']
+      providesTags: ['User'],
     }),
     addUser: builder.mutation({
       query: (newUser) => ({
         url: 'Users',
         method: 'POST',
-        body: newUser
+        body: newUser,
       }),
-      invalidatesTags: ['User']
+      invalidatesTags: ['User'],
     }),
     updateUser: builder.mutation({
       query: ({ id, ...updatedUser }) => ({
         url: `Users/${id}`,
         method: 'PUT',
-        body: updatedUser
+        body: updatedUser,
       }),
-      invalidatesTags: ['User']
+      invalidatesTags: ['User'],
     }),
     deleteUser: builder.mutation({
       query: (id) => ({
         url: `Users/${id}`,
-        method: 'DELETE'
+        method: 'DELETE',
       }),
-      invalidatesTags: ['User']
-    })
-  })
+      invalidatesTags: ['User'],
+    }),
+  }),
+  overrideExisting: false,
 });
 
 export const {
@@ -42,5 +42,5 @@ export const {
   useGetUserByIdQuery,
   useAddUserMutation,
   useUpdateUserMutation,
-  useDeleteUserMutation
+  useDeleteUserMutation,
 } = userApi;
