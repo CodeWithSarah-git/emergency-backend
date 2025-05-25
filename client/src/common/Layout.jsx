@@ -1,18 +1,22 @@
-
-import { Outlet } from "react-router-dom";
-import Header from "./Header"; // ודאי שהנתיב נכון לפי המיקום שלך
+import { Outlet, useLocation } from "react-router-dom";
+import Header from "./Header";
 import { Container, Box } from "@mui/material";
 
+const hideHeaderOnPaths = ["/", "/login", "/emergency"];
+
 const Layout = () => {
+  const location = useLocation();
+  const shouldHideHeader = hideHeaderOnPaths.includes(location.pathname);
+
   return (
-    <>
-      <Header /> {/* זה הסרגל העליון שלך עם הלינקים */}
-      <Container maxWidth="lg">
-        <Box mt={4}>
+    <Box sx={{ direction: "rtl", bgcolor: "#f8fafc", minHeight: "100vh" }}>
+      {!shouldHideHeader && <Header />}
+      <Container maxWidth="lg" sx={{ pt: 6 }}>
+        <Box mt={2}>
           <Outlet />
         </Box>
       </Container>
-    </>
+    </Box>
   );
 };
 

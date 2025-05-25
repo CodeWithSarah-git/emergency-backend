@@ -6,7 +6,7 @@ const NotificationController = require("../controllers/NotificationController");
 
 router.post("/", verifyJWT, NotificationController.createNotification);
 router.put("/:id", verifyJWT, NotificationController.updateNotification);
-router.get("/volunteer/:volunteerId", verifyJWT, NotificationController.getNotificationsByVolunteer);
+router.get("/", verifyJWT, NotificationController.getAllNotifications);
 router.delete("/:id", verifyJWT, verifyAdmin, NotificationController.deleteNotification);
 
-module.exports = router;
+module.exports = router; 

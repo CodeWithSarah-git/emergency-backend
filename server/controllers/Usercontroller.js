@@ -22,21 +22,19 @@ const updateUser = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const { firstname, lastname, phone, password, email, address, role } = req.body;
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    user.firstname = firstname;
-    user.lastname = lastname;
-    user.phone = phone;
-    user.password = password;
-    user.email = email;
-    user.address = address;
-    user.role = role;
-    user.updatedAt = Date.now();
+    const fields = ['firstname', 'lastname', 'phone', 'password', 'email', 'address', 'role'];
+    fields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        user[field] = req.body[field];
+      }
+    });
 
+    user.updatedAt = Date.now();
     await user.save();
 
     res.json({ message: `'${user.firstname}' updated`, user });
@@ -45,6 +43,7 @@ const updateUser = async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 const deleteUser = async (req, res) => {
   try {

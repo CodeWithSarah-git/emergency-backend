@@ -1,9 +1,9 @@
-import { apiSlice } from '../../app/apiSlice';
+import { apiSlice } from '../../api/apiSlice';
 
- export const notificationApi= apiSlice.injectEndpoint({
+ export const notificationApi= apiSlice.injectEndpoints({
      endpoints: (builder) => ({
-    getNotificationsByVolunteer: builder.query({
-      query: (volunteerId) => `Notification/volunteer/${volunteerId}`,
+     getNotifications: builder.query({
+      query: () => `Notification`, 
       providesTags: ['Notification'],
     }),
     addNotification:builder.mutation({
@@ -32,7 +32,7 @@ import { apiSlice } from '../../app/apiSlice';
   }),
   });
     export const {
-  useGetNotificationsByVolunteerQuery,
+  useGetNotificationsQuery,
   useAddNotificationMutation,
   useUpdateNotificationMutation,
   useDeleteNotificationMutation,

@@ -3,8 +3,9 @@ const Notification = require("../models/Notificationmodels");
 // יצירת התראה חדשה
 const createNotification = async (req, res) => {
   try {
+    console.log('Notification body:', req.body);
     const { user, call, message } = req.body;
-    if (!user || !call || !message) {
+    if ( !call || !message) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -37,19 +38,15 @@ const updateNotification = async (req, res) => {
   }
 };
 
-// קבלת התראות לפי מתנדב
-const getNotificationsByVolunteer = async (req, res) => {
+const getAllNotifications = async (req, res) => {
   try {
-    const { volunteerId } = req.params;
-    const notifications = await Notification.find({ userId: volunteerId });
-
+    const notifications = await Notification.find().populate('call user');
     res.json(notifications);
   } catch (err) {
-    console.error("Error fetching volunteer notifications:", err);
+    console.error("Error fetching all notifications:", err);
     res.status(500).json({ error: "Server error" });
   }
-};
-
+}
 // מחיקת התראה
 const deleteNotification = async (req, res) => {
   try {
@@ -70,6 +67,6 @@ const deleteNotification = async (req, res) => {
 module.exports = {
   createNotification,
   updateNotification,
-  getNotificationsByVolunteer,
+  getAllNotifications,
   deleteNotification
 };

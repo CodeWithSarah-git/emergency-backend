@@ -1,11 +1,11 @@
 const EmergencyCall = require("../models/EmergencyCall");
-
+const User = require('../models/User');
 // יצירת קריאה חדשה
 const createEmergency = async (req, res) => {
   try {
     const { category, description, location, createdBy } = req.body;
 
-    if (!category || !location || !createdBy) {
+    if (!category || !location) {
       return res.status(400).json({ message: "Required fields missing" });
     }
 
@@ -13,16 +13,53 @@ const createEmergency = async (req, res) => {
       category,
       description,
       location,
-      createdBy
+      ...(createdBy && { createdBy }), // רק אם יש, תכניס את createdBy
     });
 
     await newCall.save();
+
+    // מציאת מתנדב קרוב
+    const volunteer = await User.findOne({
+      role: 'volunteer',
+      active: true,
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: location.coordinates,
+          },
+          $maxDistance: 10000,
+        }
+      }
+    });
+
+    if (volunteer) {
+      newCall.assignedVolunteer = volunteer._id;
+      await newCall.save();
+
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASS,
+        }
+      });
+
+      await transporter.sendMail({
+        from: process.env.MAIL_USER,
+        to: volunteer.email,
+        subject: "התראה על פנייה דחופה",
+        text: `שלום ${volunteer.firstname}, יש פנייה דחופה בקרבתך. אנא בדוק את המערכת והגש לעזרה.`,
+      });
+    }
+
     res.status(201).json({ message: "New Call created", call: newCall });
   } catch (err) {
     console.error("Error creating Call:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 // עדכון קריאה לפי ID
 const updateEmergency = async (req, res) => {
@@ -93,10 +130,31 @@ const getEmergencyById = async (req, res) => {
   }
 };
 
+const updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const updatedCall = await EmergencyCall.findByIdAndUpdate(
+      id,
+      { status, updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!updatedCall) return res.status(404).json({ message: 'קריאה לא נמצאה' });
+
+    res.json({ call: updatedCall });
+  } catch (error) {
+    console.error('שגיאה בעדכון סטטוס:', error);
+    res.status(500).json({ message: 'שגיאה בעדכון הסטטוס' });
+  }
+};
+
 module.exports = {
   createEmergency,
   updateEmergency,
   deleteEmergency,
   getAllEmergencies,
-  getEmergencyById
+  getEmergencyById,
+  updateStatus
 };

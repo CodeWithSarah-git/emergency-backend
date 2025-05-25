@@ -1,4 +1,4 @@
-import { apiSlice } from '../../app/apiSlice';
+import { apiSlice } from '../../api/apiSlice';
 
 export const historyApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

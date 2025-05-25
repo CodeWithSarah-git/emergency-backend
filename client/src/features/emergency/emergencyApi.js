@@ -33,6 +33,14 @@ export const emergencyApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Emergency'],
     }),
+    updateStatus: builder.mutation({
+  query: ({ id, status }) => ({
+    url: `/emergency/${id}/status`,
+    method: 'PATCH',
+    body: { status },
+  }),
+  invalidatesTags: ['Notification'], 
+}),
   }),
 });
 
@@ -42,4 +50,5 @@ export const {
   useAddEmergencyMutation,
   useUpdateEmergencyMutation,
   useDeleteEmergencyMutation,
+  useUpdateStatusMutation,
 } = emergencyApi;

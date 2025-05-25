@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Button, TextField, MenuItem, Select, InputLabel, FormControl, FormHelperText, Typography, Box, Paper,} from '@mui/material';
+import {
+  Button, TextField, MenuItem, Select, InputLabel, FormControl,
+  FormHelperText, Typography, Box, Paper, CircularProgress,
+} from '@mui/material';
 import { useAddEmergencyMutation } from './emergencyApi';
+import { useAddNotificationMutation } from '../notification/notificationApi';
 
 export default function EmergencyForm() {
-  const [form, setForm] = useState({ title: '', description: '', urgency: 'medium' });
+  const [form, setForm] = useState({ category: '', description: '', urgency: 'medium' });
   const [location, setLocation] = useState(null);
   const [message, setMessage] = useState('');
   const [firstAidInstructions, setFirstAidInstructions] = useState('');
   const [addEmergency, { isLoading }] = useAddEmergencyMutation();
+  const [addNotification] = useAddNotificationMutation();
 
   const firstAidGuide = {
     bleeding: '1. לחץ על המקום הפגוע עם בד נקי.\n2. שמור על הלחץ עד להגעת עזרה מקצועית.',
@@ -22,67 +27,73 @@ export default function EmergencyForm() {
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        pos => {
-          setLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
-        },
-        err => alert('שגיאה באיתור מיקום: ' + err.message)
+        pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        err => setMessage('שגיאה באיתור מיקום: ' + err.message)
       );
     } else {
-      alert('הדפדפן לא תומך ב-GPS');
+      setMessage('הדפדפן לא תומך ב-GPS');
     }
   }, []);
 
   const handleChange = e => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
-    if (name === 'title') {
-      setFirstAidInstructions(firstAidGuide[value]);
+    if (name === 'category') {
+      setFirstAidInstructions(firstAidGuide[value] || '');
     }
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!location) return alert('חובה לקבל מיקום לפני שליחה');
-
+    if (!location) {
+      setMessage('מיקום לא זמין, אנא אפשר גישה ל-GPS');
+      return;
+    }
     try {
-      await addEmergency({
-        title: form.title,
+      const result = await addEmergency({
+        category: form.category,
         description: form.description,
-        location,
         urgency: form.urgency,
-        status: 'open',
+        location: {
+          type: 'Point',
+          coordinates: [location.lng, location.lat],
+        },
       }).unwrap();
 
+      const newEmergency = result.call;
+      await addNotification({
+        call: newEmergency._id,
+        message: `התראת חירום חדשה: ${newEmergency.category} - ${newEmergency.description}`,
+      });
+
       setMessage('הפנייה נשלחה בהצלחה!');
-      setForm({ title: '', description: '', urgency: 'medium' });
+      setForm({ category: '', description: '', urgency: 'medium' });
       setFirstAidInstructions('');
     } catch (err) {
-      console.error(err);
       setMessage('שגיאה בשליחה');
     }
   };
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh" bgcolor="#f5f5f5" py={5}>
-      <Paper elevation={3} sx={{ p: 4, width: '90%', maxWidth: 500, borderRadius: 3 }}>
-        <Typography variant="h4" gutterBottom color="error">
-          יצירת קריאת חירום
+    <Box display="flex" justifyContent="center" alignItems="start" minHeight="100vh" bgcolor="#f8fafc" py={7} sx={{ direction: "rtl" }}>
+      <Paper elevation={6} sx={{ p: 5, width: "100%", maxWidth: 520, borderRadius: 4, bgcolor: "#fff" }}>
+        <Typography variant="h4" color="error" fontWeight={800} gutterBottom>
+          פנייה חדשה
         </Typography>
-
+        <Typography mb={2} color="text.secondary" fontWeight={600}>
+          מלא את הפרטים ושלח קריאה דחופה. אנא אפשר גישה למיקום.
+        </Typography>
         <form onSubmit={handleSubmit}>
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" required>
             <InputLabel>סוג פגיעה</InputLabel>
-            <Select name="title" value={form.title} onChange={handleChange} label="סוג פגיעה">
+            <Select name="category" value={form.category} onChange={handleChange} label="סוג פגיעה">
               <MenuItem value="bleeding">דימום</MenuItem>
               <MenuItem value="burn">כווייה</MenuItem>
               <MenuItem value="fracture">שבר</MenuItem>
               <MenuItem value="headInjury">פגיעת ראש</MenuItem>
               <MenuItem value="abdominalInjury">פגיעת בטן</MenuItem>
-              <MenuItem value="fainting">פרכוסים</MenuItem>
-              <MenuItem value="seizures">עוויתות</MenuItem>
+              <MenuItem value="fainting">עילפון</MenuItem>
+              <MenuItem value="seizures">פרכוסים</MenuItem>
             </Select>
             <FormHelperText>בחר את סוג הפציעה</FormHelperText>
           </FormControl>
@@ -99,26 +110,26 @@ export default function EmergencyForm() {
             onChange={handleChange}
           />
 
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal" required>
             <InputLabel>דחיפות</InputLabel>
             <Select name="urgency" value={form.urgency} onChange={handleChange} label="דחיפות">
-              <MenuItem value="low">נמוך</MenuItem>
-              <MenuItem value="medium">בינוני</MenuItem>
-              <MenuItem value="high">גבוה</MenuItem>
+              <MenuItem value="low">נמוכה</MenuItem>
+              <MenuItem value="medium">בינונית</MenuItem>
+              <MenuItem value="high">גבוהה</MenuItem>
             </Select>
           </FormControl>
 
           <Button type="submit" variant="contained" color="error" fullWidth sx={{ mt: 2 }} disabled={isLoading}>
-            {isLoading ? 'שולח...' : 'שלח פנייה'}
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'שלח פנייה'}
           </Button>
         </form>
 
         {firstAidInstructions && (
-          <Paper sx={{ padding: 2, marginTop: 3, backgroundColor: '#fff3cd', border: '1px solid #ffecb5' }}>
-            <Typography variant="h6" sx={{ color: '#cc6600', fontWeight: 'bold' }}>
+          <Paper sx={{ padding: 2, marginTop: 3, backgroundColor: '#fffbe7', border: '1px solid #ffe082', borderRadius: 2 }}>
+            <Typography variant="h6" color="#ad8500" fontWeight="bold">
               הוראות לעזרה ראשונה:
             </Typography>
-            <Typography sx={{ whiteSpace: 'pre-wrap', fontWeight: 'bold' }}>
+            <Typography sx={{ whiteSpace: "pre-wrap", fontWeight: "bold" }}>
               {firstAidInstructions}
             </Typography>
           </Paper>

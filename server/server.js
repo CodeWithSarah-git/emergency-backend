@@ -6,7 +6,7 @@ const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const connectDB = require("./config/dbConn");
 const PORT = process.env.PORT || 5000;
-
+app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
 
 connectDB();
@@ -15,7 +15,7 @@ mongoose.connection.on('error', err => console.log(' MongoDB connection error:',
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 
-const UserRout = require("./router/UserRout");
+const UserRout = require("./router/UserRout"); 
 const NotificationRout = require("./router/NotificationRout");
 const EmergencyRout = require("./router/EmergencyRout");
 const CallHistoryRout = require("./router/CallHistoryRout");
