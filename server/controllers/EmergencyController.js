@@ -1,3 +1,4 @@
+const nodemailer = require("nodemailer");
 const EmergencyCall = require("../models/EmergencyCall");
 const User = require('../models/User');
 // יצירת קריאה חדשה
@@ -32,6 +33,12 @@ const createEmergency = async (req, res) => {
         }
       }
     });
+    if (!volunteer) {
+      //למחוק
+  console.log("לא נמצא מתנדב קרוב");
+} else {
+  console.log("נמצא מתנדב:", volunteer.email);
+}
 
     if (volunteer) {
       newCall.assignedVolunteer = volunteer._id;
@@ -40,8 +47,8 @@ const createEmergency = async (req, res) => {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: process.env.MAIL_USER,
-          pass: process.env.MAIL_PASS,
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
         }
       });
 

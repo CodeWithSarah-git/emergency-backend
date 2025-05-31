@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Button, TextField, MenuItem, Select, InputLabel, FormControl,
-  FormHelperText, Typography, Box, Paper, CircularProgress,
+  FormHelperText, Typography, Box, Paper, CircularProgress
 } from '@mui/material';
 import { useAddEmergencyMutation } from './emergencyApi';
 import { useAddNotificationMutation } from '../notification/notificationApi';
@@ -75,14 +75,37 @@ export default function EmergencyForm() {
   };
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="start" minHeight="100vh" bgcolor="#f8fafc" py={7} sx={{ direction: "rtl" }}>
-      <Paper elevation={6} sx={{ p: 5, width: "100%", maxWidth: 520, borderRadius: 4, bgcolor: "#fff" }}>
-        <Typography variant="h4" color="error" fontWeight={800} gutterBottom>
+    <Box
+      sx={{
+        direction: "rtl",
+        minHeight: "100vh",
+        px: 2,
+        py: 6,
+        background: 'linear-gradient(-45deg, #f0f4ff, #e1bee7, #ffccbc, #b2dfdb)',
+        backgroundSize: '400% 400%',
+        animation: 'gradientMove 15s ease infinite',
+      }}
+    >
+      <Paper
+        elevation={4}
+        sx={{
+          p: 5,
+          maxWidth: 550,
+          mx: "auto",
+          borderRadius: 5,
+          textAlign: "center",
+          bgcolor: "#fff",
+          boxShadow: "0 6px 24px rgba(0,0,0,0.1)"
+        }}
+      >
+        <Typography variant="h3" fontWeight={900} color="error" gutterBottom>
           פנייה חדשה
         </Typography>
-        <Typography mb={2} color="text.secondary" fontWeight={600}>
+
+        <Typography variant="subtitle1" color="text.secondary" fontWeight={600} mb={3}>
           מלא את הפרטים ושלח קריאה דחופה. אנא אפשר גישה למיקום.
         </Typography>
+
         <form onSubmit={handleSubmit}>
           <FormControl fullWidth margin="normal" required>
             <InputLabel>סוג פגיעה</InputLabel>
@@ -119,36 +142,64 @@ export default function EmergencyForm() {
             </Select>
           </FormControl>
 
-          <Button type="submit" variant="contained" color="error" fullWidth sx={{ mt: 2 }} disabled={isLoading}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="error"
+            fullWidth
+            sx={{
+              py: 1.5,
+              fontWeight: 700,
+              mt: 3,
+              mb: 1,
+              borderRadius: 2,
+              fontSize: '1.1rem',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            }}
+            disabled={isLoading}
+          >
             {isLoading ? <CircularProgress size={24} color="inherit" /> : 'שלח פנייה'}
           </Button>
         </form>
 
+        <Typography
+          sx={{
+            mt: 2,
+            minHeight: 32,
+            color: message === 'הפנייה נשלחה בהצלחה!' ? 'green' : 'red',
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
+        >
+          {message}
+        </Typography>
+
         {firstAidInstructions && (
-          <Paper sx={{ padding: 2, marginTop: 3, backgroundColor: '#fffbe7', border: '1px solid #ffe082', borderRadius: 2 }}>
-            <Typography variant="h6" color="#ad8500" fontWeight="bold">
+          <Paper sx={{
+            p: 2,
+            mt: 3,
+            backgroundColor: '#fff8e1',
+            border: '1px solid #ffe082',
+            borderRadius: 3,
+          }}>
+            <Typography variant="h6" color="#ad8500" fontWeight="bold" gutterBottom>
               הוראות לעזרה ראשונה:
             </Typography>
-            <Typography sx={{ whiteSpace: "pre-wrap", fontWeight: "bold" }}>
+            <Typography sx={{ whiteSpace: "pre-wrap", fontWeight: 600 }}>
               {firstAidInstructions}
             </Typography>
           </Paper>
         )}
-
-        {message && (
-          <Typography
-            variant="h6"
-            sx={{
-              marginTop: 3,
-              color: message === 'הפנייה נשלחה בהצלחה!' ? 'green' : 'red',
-              fontWeight: 'bold',
-              textAlign: 'center',
-            }}
-          >
-            {message}
-          </Typography>
-        )}
       </Paper>
+
+      {/* אנימציית רקע */}
+      <style>{`
+        @keyframes gradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
     </Box>
   );
 }

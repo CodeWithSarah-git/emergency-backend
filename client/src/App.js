@@ -16,7 +16,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route index element={<HomePage />} /> {/* זה ברירת מחדל ל־/ */}
+        <Route index element={<HomePage />} /> 
         <Route path="users" element={<User />} />
         <Route path="notification" element={<Notification />} />
         <Route path="emergency" element={<Emergency />} />

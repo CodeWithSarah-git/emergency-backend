@@ -5,10 +5,15 @@ import {
   useDeleteUserMutation,
   useUpdateUserMutation,
 } from './userApi';
-import { Box, TextField, Button, Typography, Paper, IconButton, CircularProgress } from '@mui/material';
+import {
+  Box, TextField, Button, Typography, Paper,
+  IconButton, CircularProgress, useTheme, Grid
+} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { PersonAdd, ManageAccounts } from '@mui/icons-material';
 
 export default function UserList() {
+  const theme = useTheme();
   const { data: users = [], isLoading, isError, error, refetch } = useGetUsersQuery();
   const [addUser] = useAddUserMutation();
   const [deleteUser] = useDeleteUserMutation();
@@ -22,34 +27,63 @@ export default function UserList() {
     address: '',
     password: '',
     role: 'volunteer',
+    location: null, // חדש!
   });
 
   const [editingUserId, setEditingUserId] = useState(null);
   const [editedUser, setEditedUser] = useState({});
   const [searchName, setSearchName] = useState('');
   const [searchAddress, setSearchAddress] = useState('');
+  const [locationStatus, setLocationStatus] = useState('');
 
-  const handleChange = (e) => {
-    setNewUser({ ...newUser, [e.target.name]: e.target.value });
+  const handleChange = (e) => setNewUser({ ...newUser, [e.target.name]: e.target.value });
+  const handleEditChange = (e) => setEditedUser({ ...editedUser, [e.target.name]: e.target.value });
+
+  // מיקום אוטומטי עבור משתמש חדש
+  const getCurrentLocationForNewUser = () => {
+    setLocationStatus(''); // איפוס הודעה
+    if (!navigator.geolocation) {
+      setLocationStatus("הדפדפן לא תומך ב-GPS");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setNewUser(prev => ({
+          ...prev,
+          location: {
+            type: "Point",
+            coordinates: [pos.coords.longitude, pos.coords.latitude]
+          }
+        }));
+        setLocationStatus('מיקום נקלט בהצלחה!');
+      },
+      err => {
+        setLocationStatus("שגיאה באיתור מיקום: " + err.message);
+      }
+    );
   };
 
   const handleAddUser = async () => {
-    const { firstname, lastname, email, phone, password, role } = newUser;
+    const { firstname, lastname, email, phone, password, role, location } = newUser;
     if (!firstname || !lastname || !email || !phone || !password || !role) return;
+
+    // אפשר לדרוש מיקום חובה, או להשאיר אופציונלי
+    // if (!location) {
+    //   alert("יש לבחור מיקום אוטומטי מהדפדפן!");
+    //   return;
+    // }
+
     try {
-      await addUser(newUser).unwrap();
+      await addUser({ ...newUser, location }).unwrap();
+
       setNewUser({
-        firstname: '',
-        lastname: '',
-        email: '',
-        phone: '',
-        address: '',
-        password: '',
-        role: 'volunteer',
+        firstname: '', lastname: '', email: '',
+        phone: '', address: '', password: '', role: 'volunteer', location: null
       });
+      setLocationStatus('');
       refetch();
     } catch (err) {
-      // טיפול בשגיאה
+      console.error("שגיאה בהוספת משתמש:", err);
     }
   };
 
@@ -57,28 +91,26 @@ export default function UserList() {
     try {
       await deleteUser(id).unwrap();
       refetch();
-    } catch (err) {
-      // טיפול בשגיאה
-    }
-  };
-
-  const handleEditChange = (e) => {
-    setEditedUser({ ...editedUser, [e.target.name]: e.target.value });
+    } catch (err) {}
   };
 
   const handleSaveEdit = async () => {
     try {
-      await updateUser({ id: editingUserId, ...editedUser }).unwrap();
+      let updatedData = { ...editedUser };
+
+      // אם שינו כתובת, אפשר להציע לעדכן מיקום חדש
+      // (אפשר להוסיף כאן קבלת מיקום מהדפדפן אם רוצים)
+      // כרגע - לא נוגע במיקום בעת עריכה
+      await updateUser({ id: editingUserId, ...updatedData }).unwrap();
       setEditingUserId(null);
       refetch();
-    } catch (err) {
-      // טיפול בשגיאה
-    }
+    } catch (err) {}
   };
 
   const filteredUsers = users.filter((user) =>
     (`${user.firstname} ${user.lastname}`.toLowerCase().includes(searchName.toLowerCase()) &&
-      user.address.toLowerCase().includes(searchAddress.toLowerCase()))
+      (user.address || '').toLowerCase().includes(searchAddress.toLowerCase())
+    )
   );
 
   if (isLoading) {
@@ -98,89 +130,162 @@ export default function UserList() {
   }
 
   return (
-    <Box p={3} sx={{ direction: "rtl" }}>
-      <Typography variant="h4" fontWeight={700} gutterBottom color="primary">
-        ניהול משתמשים
-      </Typography>
-
-      <Paper elevation={3} sx={{ p: 2, mb: 4, borderRadius: 3 }}>
-        <Typography variant="h6" fontWeight={700} gutterBottom>
-          הוסף משתמש חדש
+    <Box
+      sx={{
+        direction: 'rtl',
+        minHeight: '100vh',
+        px: 2,
+        py: 6,
+        background: 'linear-gradient(-45deg, #f0f4ff, #e1bee7, #ffccbc, #b2dfdb)',
+        backgroundSize: '400% 400%',
+        animation: 'gradientMove 15s ease infinite',
+      }}
+    >
+      <Paper elevation={4} sx={{ p: 4, mb: 4, borderRadius: 5, maxWidth: 1000, mx: 'auto', textAlign: 'center' }}>
+        <Typography variant="h3" fontWeight={900} color="primary" gutterBottom>
+          <ManageAccounts sx={{ fontSize: 40, verticalAlign: 'middle', ml: 1 }} />
+          ניהול משתמשים
         </Typography>
-        <Box display="flex" gap={2} flexWrap="wrap">
-          <TextField label="שם פרטי" name="firstname" value={newUser.firstname} onChange={handleChange} />
-          <TextField label="שם משפחה" name="lastname" value={newUser.lastname} onChange={handleChange} />
-          <TextField label="אימייל" name="email" value={newUser.email} onChange={handleChange} />
-          <TextField label="טלפון" name="phone" value={newUser.phone} onChange={handleChange} />
-          <TextField label="כתובת" name="address" value={newUser.address} onChange={handleChange} />
-          <TextField label="סיסמה" name="password" type="password" value={newUser.password} onChange={handleChange} />
-          <TextField label="תפקיד" name="role" value={newUser.role} onChange={handleChange} />
-          <Button variant="contained" onClick={handleAddUser}>הוסף</Button>
-        </Box>
-      </Paper>
-
-      <Paper elevation={3} sx={{ p: 2, mb: 3, borderRadius: 3 }}>
-        <Typography variant="h6" fontWeight={700} gutterBottom>
-          חיפוש
+        <Typography variant="subtitle1" color="text.secondary" fontWeight={600} mb={3}>
+          הוספה, עריכה ומחיקה של משתמשים במערכת
         </Typography>
-        <Box display="flex" gap={2}>
-          <TextField label="חפש לפי שם" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
-          <TextField label="חפש לפי כתובת" value={searchAddress} onChange={(e) => setSearchAddress(e.target.value)} />
-        </Box>
-      </Paper>
 
-      <Paper elevation={3} sx={{ p: 2, borderRadius: 3 }}>
-        <Typography variant="h6" fontWeight={700} gutterBottom>
-          רשימת משתמשים
-        </Typography>
-        {filteredUsers.length === 0 ? (
-          <Typography>אין משתמשים להצגה</Typography>
-        ) : (
-          filteredUsers.map((user) => (
-            <Box
-              key={user._id}
-              display="flex"
-              gap={2}
-              flexWrap="wrap"
-              alignItems="center"
-              borderBottom="1px solid #eee"
-              py={1}
+        {/* טופס הוספה */}
+        <Grid container spacing={2} justifyContent="center" mb={3}>
+          {["firstname", "lastname", "email", "phone", "address", "password", "role"].map((field) => (
+            <Grid item xs={12} sm={6} md={4} key={field}>
+              <TextField
+                fullWidth
+                label={
+                  field === "password"
+                    ? "סיסמה"
+                    : field === "role"
+                    ? "תפקיד"
+                    : field
+                }
+                name={field}
+                value={newUser[field]}
+                type={field === "password" ? "password" : "text"}
+                onChange={handleChange}
+                size="small"
+              />
+            </Grid>
+          ))}
+          {/* כפתור מיקום אוטומטי */}
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={getCurrentLocationForNewUser}
+              sx={{ borderRadius: 3, py: 1.2, fontWeight: 700, mb: 1 }}
             >
-              {editingUserId === user._id ? (
-                <>
-                  <TextField name="firstname" value={editedUser.firstname} onChange={handleEditChange} label="שם פרטי" />
-                  <TextField name="lastname" value={editedUser.lastname} onChange={handleEditChange} label="שם משפחה" />
-                  <TextField name="email" value={editedUser.email} onChange={handleEditChange} label="אימייל" />
-                  <TextField name="phone" value={editedUser.phone} onChange={handleEditChange} label="טלפון" />
-                  <TextField name="address" value={editedUser.address} onChange={handleEditChange} label="כתובת" />
-                  <Button variant="contained" onClick={handleSaveEdit}>שמור</Button>
-                  <Button variant="outlined" onClick={() => setEditingUserId(null)}>ביטול</Button>
-                </>
-              ) : (
-                <>
-                  <Typography sx={{ flex: 1 }}>
-                    {user.firstname} {user.lastname} | {user.email} | {user.phone} | {user.address}
-                  </Typography>
-                  <Button onClick={() => {
-                    setEditingUserId(user._id);
-                    setEditedUser({
-                      firstname: user.firstname,
-                      lastname: user.lastname,
-                      email: user.email,
-                      phone: user.phone,
-                      address: user.address,
-                    });
-                  }}>
-                    ערוך
-                  </Button>
-                  <IconButton color="error" onClick={() => handleDelete(user._id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </>
-              )}
-            </Box>
-          ))
-        )}
+              בחר מיקום אוטומטי מהדפדפן
+            </Button>
+            {locationStatus && (
+              <Typography color={locationStatus.includes('בהצלחה') ? "success.main" : "error"} fontWeight={700} mt={1}>
+                {locationStatus}
+              </Typography>
+            )}
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={<PersonAdd />}
+              onClick={handleAddUser}
+              sx={{ borderRadius: 3, py: 1.2, fontWeight: 700, mt: 2 }}
+            >
+              הוסף משתמש
+            </Button>
+          </Grid>
+        </Grid>
+
+        {/* חיפוש */}
+        <Box mb={4}>
+          <Typography variant="h6" fontWeight={700} gutterBottom>
+            חיפוש משתמשים
+          </Typography>
+          <Grid container spacing={2} justifyContent="center">
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                label="חיפוש לפי שם"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                label="חיפוש לפי כתובת"
+                value={searchAddress}
+                onChange={(e) => setSearchAddress(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* רשימת משתמשים */}
+        <Box>
+          <Typography variant="h6" fontWeight={700} gutterBottom>
+            רשימת משתמשים
+          </Typography>
+          {filteredUsers.length === 0 ? (
+            <Typography color="text.secondary">אין משתמשים להצגה</Typography>
+          ) : (
+            filteredUsers.map((user) => (
+              <Paper
+                key={user._id}
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderRadius: 3,
+                  backgroundColor: '#f9f9f9',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                }}
+              >
+                {editingUserId === user._id ? (
+                  <>
+                    {["firstname", "lastname", "email", "phone", "address"].map((field) => (
+                      <TextField
+                        key={field}
+                        name={field}
+                        value={editedUser[field]}
+                        onChange={handleEditChange}
+                        label={field}
+                        size="small"
+                        sx={{ mx: 1 }}
+                      />
+                    ))}
+                    <Button variant="contained" onClick={handleSaveEdit}>שמור</Button>
+                    <Button variant="outlined" onClick={() => setEditingUserId(null)}>ביטול</Button>
+                  </>
+                ) : (
+                  <>
+                    <Typography sx={{ flex: 1 }}>
+                      {user.firstname} {user.lastname} | {user.email} | {user.phone} | {user.address}
+                    </Typography>
+                    <Button
+                      onClick={() => {
+                        setEditingUserId(user._id);
+                        setEditedUser({ ...user });
+                      }}
+                    >
+                      ערוך
+                    </Button>
+                    <IconButton color="error" onClick={() => handleDelete(user._id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </>
+                )}
+              </Paper>
+            ))
+          )}
+        </Box>
       </Paper>
     </Box>
   );

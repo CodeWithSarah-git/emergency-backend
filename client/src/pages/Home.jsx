@@ -1,71 +1,97 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, Paper, Grid, Avatar } from '@mui/material';
-import BoltIcon from '@mui/icons-material/Bolt';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
-import SecurityIcon from '@mui/icons-material/Security';
+import {
+  Box, Typography, Button, Paper, Grid, Avatar, useTheme
+} from '@mui/material';
+import {
+  Bolt, PeopleAlt, SupportAgent, LocalHospital,
+  EmojiEmotions, Security
+} from '@mui/icons-material';
 
 const stats = [
-  { icon: <BoltIcon fontSize="large" color="warning" />, number: '6,700+', label: "פניות טופלו החודש", bg: "#fff3e0" },
-  { icon: <PeopleAltIcon fontSize="large" color="primary" />, number: '1,850', label: 'מתנדבים זמינים עכשיו', bg: "#e3f2fd" },
-  { icon: <SupportAgentIcon fontSize="large" color="secondary" />, number: '98%', label: 'מענה ראשוני עד 3 דק\'', bg: "#f3e5f5" },
-  { icon: <LocalHospitalIcon fontSize="large" color="error" />, number: '3,930', label: 'מוקדים רפואיים מחוברים', bg: "#ffebee" },
-  { icon: <EmojiEmotionsIcon fontSize="large" color="success" />, number: '9.7', label: 'דירוג שביעות רצון', bg: "#e8f5e9" },
-  { icon: <SecurityIcon fontSize="large" color="info" />, number: '24/7', label: 'מערכת מאובטחת וזמינה', bg: "#e0f7fa" }
+  { icon: <Bolt />, number: '6,700+', label: "פניות טופלו החודש", bg: "#fff3e0" },
+  { icon: <PeopleAlt />, number: '1,850', label: 'מתנדבים זמינים עכשיו', bg: "#e3f2fd" },
+  { icon: <SupportAgent />, number: '98%', label: "מענה ראשוני עד 3 דק'", bg: "#f3e5f5" },
+  { icon: <LocalHospital />, number: '3,930', label: 'מוקדים רפואיים מחוברים', bg: "#ffebee" },
+  { icon: <EmojiEmotions />, number: '9.7', label: 'דירוג שביעות רצון', bg: "#e8f5e9" },
+  { icon: <Security />, number: '24/7', label: 'מערכת מאובטחת וזמינה', bg: "#e0f7fa" }
 ];
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   return (
     <Box
       sx={{
         direction: 'rtl',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e1bee7 100%)',
-        pt: 8, pb: 5, px: 2,
-        display: 'flex', flexDirection: 'column', alignItems: 'center'
+        px: 2, py: 6,
+        background: 'linear-gradient(-45deg, #f0f4ff, #e1bee7, #ffccbc, #b2dfdb)',
+        backgroundSize: '400% 400%',
+        animation: 'gradientMove 15s ease infinite',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
       }}
     >
-      <Paper
-        elevation={5}
+      {/* לוגו עם אייקון */}
+      <Typography
+        variant="h2"
+        fontWeight={900}
         sx={{
-          p: 5,
-          borderRadius: 6,
-          width: '95%',
-          maxWidth: 530,
+          background: 'linear-gradient(90deg, #7c4dff, #ff4081)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
           textAlign: 'center',
-          bgcolor: 'white',
-          mb: 5,
-          mt: { xs: 4, md: 2 },
+          mb: 2,
+          letterSpacing: 2,
+          textShadow: '0 1px 1px rgba(0,0,0,0.1)'
         }}
       >
-        <Typography variant="h2" color="primary" fontWeight={900} gutterBottom sx={{ letterSpacing: 1 }}>
-          Lifeline360
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary" fontWeight={600} mb={3}>
-          מערכת החירום המתקדמת בישראל – זמינות, מהירות וקהילה מחבקת
-        </Typography>
+        <SupportAgent sx={{ fontSize: 40, verticalAlign: 'middle', ml: 1 }} />
+        Lifeline360
+      </Typography>
+
+      {/* תיאור */}
+      <Typography
+        variant="subtitle1"
+        color="text.secondary"
+        fontWeight={600}
+        mb={4}
+        textAlign="center"
+      >
+        מערכת החירום המתקדמת בישראל – זמינות, מהירות וקהילה מחבקת
+      </Typography>
+
+      {/* כפתורים */}
+      <Paper
+        elevation={4}
+        sx={{
+          p: 4, borderRadius: 5, width: '95%', maxWidth: 520,
+          mb: 5, backgroundColor: 'white', textAlign: 'center'
+        }}
+      >
         <Button
           variant="contained"
           color="primary"
           fullWidth
-          sx={{ py: 1.7, fontSize: '1.1rem', mb: 2, fontWeight: 700, borderRadius: 2, letterSpacing: 1.5 }}
+          sx={{
+            py: 1.6, fontSize: '1.1rem', fontWeight: 700, borderRadius: 2, mb: 2,
+            '&:hover': { backgroundColor: theme.palette.primary.dark }
+          }}
           onClick={() => navigate('/login')}
         >
           כניסת מתנדבים/מנהלים
         </Button>
+
         <Button
           variant="contained"
-          color="error"
           fullWidth
           sx={{
-            py: 1.7, fontSize: '1.1rem', fontWeight: 700, borderRadius: 2, letterSpacing: 1.5,
-            background: 'linear-gradient(90deg, #ff7043 0%, #d32f2f 100%)',
-            '&:hover': { background: 'linear-gradient(90deg, #d84315 0%, #b71c1c 100%)' }
+            py: 1.6, fontSize: '1.1rem', fontWeight: 700, borderRadius: 2,
+            background: 'linear-gradient(90deg, #ff7043, #d32f2f)',
+            '&:hover': { background: 'linear-gradient(90deg, #e64a19, #b71c1c)' }
           }}
           onClick={() => navigate('/emergency')}
         >
@@ -73,28 +99,55 @@ export default function HomePage() {
         </Button>
       </Paper>
 
-      <Box textAlign="center" mb={3}>
-        <Typography variant="h4" fontWeight={800} mb={1} color="primary">
-          יחד – מצילים חיים בלחיצת כפתור
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary" mb={2}>
-          Lifeline360 מחברת בין פונים לעזרה <b>לבין מתנדבים מנוסים</b> בפריסה ארצית, בליווי מקצועי ובתחושת שליחות.
-        </Typography>
-      </Box>
+      {/* טקסט נוסף */}
+      <Typography variant="h4" fontWeight={800} mb={1} color="primary">
+        יחד – מצילים חיים בלחיצת כפתור
+      </Typography>
 
+      <Typography
+        variant="subtitle1"
+        color="text.secondary"
+        mb={4}
+        textAlign="center"
+      >
+        Lifeline360 מחברת בין פונים לעזרה <b>לבין מתנדבים מנוסים</b> בפריסה ארצית, בליווי מקצועי ובתחושת שליחות.
+      </Typography>
+
+      {/* כרטיסי סטטיסטיקה */}
       <Grid container spacing={2} justifyContent="center" maxWidth="lg">
         {stats.map((item, idx) => (
-          <Grid item xs={12} sm={6} md={2} key={idx}>
-            <Box>
+          <Grid item xs={6} sm={4} md={2} key={idx}>
+            <Box textAlign="center">
               <Avatar
                 sx={{
                   bgcolor: item.bg,
-                  width: 70, height: 70, margin: "0 auto", mb: 1.2, boxShadow: 2
+                  width: 70,
+                  height: 70,
+                  margin: "0 auto",
+                  mb: 1.2,
+                  boxShadow: 2,
+                  transition: 'transform 0.3s ease, background-color 0.3s ease, color 0.3s ease',
+                  cursor: 'pointer',
+                  color: 'inherit',
+                  '&:hover': {
+                    transform: 'scale(1.2)',
+                    bgcolor: 'primary.main',
+                    color: '#fff',
+                    boxShadow: '0 0 15px rgba(0, 0, 0, 0.3)',
+                  }
                 }}
               >
                 {item.icon}
               </Avatar>
-              <Typography variant="h6" fontWeight={800} color="primary.dark" mt={1}>
+              <Typography
+                variant="h6"
+                fontWeight={800}
+                color="primary.dark"
+                sx={{
+                  transition: 'transform 0.3s',
+                  '&:hover': { transform: 'scale(1.05)' }
+                }}
+              >
                 {item.number}
               </Typography>
               <Typography variant="body2" color="text.secondary" fontWeight={600}>
